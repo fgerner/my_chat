@@ -25,13 +25,13 @@ namespaces.forEach((namespace) => {
         nsSocket.emit('nsRoomLoad', namespaces[0].rooms);
         nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
             nsSocket.join(roomToJoin);
-            io.of('/wiki').in(roomToJoin).clients((error, clients) => {
-                numberOfUsersCallback(clients.length);
-            });
             const nsRoom = namespaces[0].rooms.find((room) => {
                 return room.roomTitle === roomToJoin;
             });
             nsSocket.emit('historyCatchUp', nsRoom.history);
+            io.of('/wiki').in(roomToJoin).clients((error, clients) => {
+                io.of('/wiki').in(roomToJoin).emit('updateMembers', clients.length);
+            })
         });
         nsSocket.on('newMessageToServer', (msg) => {
             const fullMsg = {
