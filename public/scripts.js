@@ -1,7 +1,6 @@
 const socket = io('http://localhost:3000');
 let nsSocket = '';
 socket.on('nsList', (nsData) => {
-    console.log('list of namespaces is here');
     let namespacesDiv = document.querySelector('.namespaces');
     namespacesDiv.innerHTML = "";
     nsData.forEach((ns) => {
@@ -10,6 +9,8 @@ socket.on('nsList', (nsData) => {
     Array.from(document.getElementsByClassName('namespace')).forEach((elem) => {
         elem.addEventListener('click', (e) => {
             const nsEndpoint = elem.getAttribute('ns');
+            console.log(nsEndpoint);
+            joinNs(nsEndpoint);
         })
     });
     joinNs('/wiki');

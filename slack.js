@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const socketIo = require('socket.io');
 let namespaces = require('./data/namespaces');
-// console.log(namespaces[0]);
 
 app.use(express.static(__dirname + '/public'));
 const expressServer = app.listen(3000);
@@ -15,7 +14,6 @@ io.on('connection', (socket) => {
             endpoint: ns.endpoint
         }
     })
-    // console.log(nsData);
     socket.emit('nsList', nsData)
 });
 
@@ -25,12 +23,12 @@ namespaces.forEach((namespace) => {
         nsSocket.emit('nsRoomLoad', namespaces[0].rooms);
         nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
             nsSocket.join(roomToJoin);
-            const nsRoom = namespaces[0].rooms.find((room) => {
+            const nsRoom = namespace.rooms.find((room) => {
                 return room.roomTitle === roomToJoin;
             });
             nsSocket.emit('historyCatchUp', nsRoom.history);
-            io.of('/wiki').in(roomToJoin).clients((error, clients) => {
-                io.of('/wiki').in(roomToJoin).emit('updateMembers', clients.length);
+            io.of(namespace.endpoint).in(roomToJoin).clients((error, clients) => {
+                io.of(namespace.endpoint).in(roomToJoin).emit('updateMembers', clients.length);
             })
         });
         nsSocket.on('newMessageToServer', (msg) => {
@@ -40,15 +38,12 @@ namespaces.forEach((namespace) => {
                 username: 'me',
                 avatar: 'http://via.placeholder.com/30'
             }
-            // console.log(fullMsg);
-            // console.log(nsSocket.rooms);
             const roomTitle = Object.keys(nsSocket.rooms)[1];
-            const nsRoom = namespaces[0].rooms.find((room) => {
+            const nsRoom = namespace.rooms.find((room) => {
                 return room.roomTitle === roomTitle;
             });
-            // console.log(nsRoom);
             nsRoom.addMessage(fullMsg);
-            io.of('/wiki').to(roomTitle).emit('messageToClients', fullMsg);
+            io.of(namespace.endpoint).to(roomTitle).emit('messageToClients', fullMsg);
         })
     })
 })
