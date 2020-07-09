@@ -1,6 +1,7 @@
 function joinNs(endpoint) {
-    if(nsSocket) {
+    if (nsSocket) {
         nsSocket.close();
+        document.querySelector('#user-input').removeEventListener('submit', formSubmission);
     }
     nsSocket = io(`http://localhost:3000${endpoint}`);
     nsSocket.on('nsRoomLoad', (nsRooms) => {
@@ -32,24 +33,26 @@ function joinNs(endpoint) {
         document.querySelector('#messages').innerHTML += newMsg;
     });
     document.querySelector('.message-form')
-        .addEventListener('submit', (event) => {
-            event.preventDefault();
-            const newMessage = document.querySelector('#user-message').value;
-            nsSocket.emit('newMessageToServer', {text: newMessage});
-        });
+        .addEventListener('submit', formSubmission);
+}
+
+function formSubmission(event) {
+    event.preventDefault();
+    const newMessage = document.querySelector('#user-message').value;
+    nsSocket.emit('newMessageToServer', {text: newMessage});
+
 }
 
 function buildHTML(msg) {
     const convertedDate = new Date(msg.time).toLocaleString();
-    const newHTML = `
+    return `
      <li>
         <div class="user-image">
-            <img src="${msg.avatar}" />
+            <img src="${msg.avatar} "  alt="avatar"/>
         </div>
         <div class="user-message">
             <div class="user-name-time">${msg.username} <span>${convertedDate}</span></div>
             <div class="message-text">${msg.text}</div>
         </div>
-    </li>`
-    return newHTML;
+    </li>`;
 }
