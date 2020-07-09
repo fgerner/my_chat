@@ -20,7 +20,7 @@ function joinNs(endpoint) {
         let roomNodes = document.getElementsByClassName('room');
         Array.from(roomNodes).forEach((elem) => {
             elem.addEventListener('click', (e) => {
-                console.log(e.target.innerText);
+                joinRoom(e.target.innerText);
             })
         })
         const topRoom = document.querySelector('.room');
@@ -40,7 +40,6 @@ function formSubmission(event) {
     event.preventDefault();
     const newMessage = document.querySelector('#user-message').value;
     nsSocket.emit('newMessageToServer', {text: newMessage});
-
 }
 
 function buildHTML(msg) {

@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const socketIo = require('socket.io');
 let namespaces = require('./data/namespaces');
-// console.log(namespaces[0]);
 
 app.use(express.static(__dirname + '/public'));
 const expressServer = app.listen(3000);
@@ -15,23 +14,22 @@ io.on('connection', (socket) => {
             endpoint: ns.endpoint
         }
     })
-    // console.log(nsData);
     socket.emit('nsList', nsData)
 });
 
 namespaces.forEach((namespace) => {
     io.of(namespace.endpoint).on('connection', (nsSocket) => {
-        console.log(`${nsSocket.id} has joined ${namespace.endpoint}`);
         nsSocket.emit('nsRoomLoad', namespace.rooms);
         nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
+            const roomToLeave = Object.keys(nsSocket.rooms)[1];
+            nsSocket.leave(roomToLeave);
+            updateUsersInRoom(namespace, roomToLeave);
             nsSocket.join(roomToJoin);
             const nsRoom = namespace.rooms.find((room) => {
                 return room.roomTitle === roomToJoin;
             });
             nsSocket.emit('historyCatchUp', nsRoom.history);
-            io.of(namespace.endpoint).in(roomToJoin).clients((error, clients) => {
-                io.of(namespace.endpoint).in(roomToJoin).emit('updateMembers', clients.length);
-            });
+            updateUsersInRoom(namespace, roomToJoin);
         });
         nsSocket.on('newMessageToServer', (msg) => {
             const fullMsg = {
@@ -49,3 +47,9 @@ namespaces.forEach((namespace) => {
         })
     })
 })
+
+function updateUsersInRoom(namespace, roomToJoin) {
+    io.of(namespace.endpoint).in(roomToJoin).clients((error, clients) => {
+        io.of(namespace.endpoint).in(roomToJoin).emit('updateMembers', clients.length);
+    });
+}
