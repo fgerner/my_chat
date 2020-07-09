@@ -22,33 +22,30 @@ io.on('connection', (socket) => {
 namespaces.forEach((namespace) => {
     io.of(namespace.endpoint).on('connection', (nsSocket) => {
         console.log(`${nsSocket.id} has joined ${namespace.endpoint}`);
-        nsSocket.emit('nsRoomLoad', namespaces[0].rooms);
+        nsSocket.emit('nsRoomLoad', namespace.rooms);
         nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
             nsSocket.join(roomToJoin);
-            const nsRoom = namespaces[0].rooms.find((room) => {
+            const nsRoom = namespace.rooms.find((room) => {
                 return room.roomTitle === roomToJoin;
             });
             nsSocket.emit('historyCatchUp', nsRoom.history);
-            io.of('/wiki').in(roomToJoin).clients((error, clients) => {
-                io.of('/wiki').in(roomToJoin).emit('updateMembers', clients.length);
-            })
+            io.of(namespace.endpoint).in(roomToJoin).clients((error, clients) => {
+                io.of(namespace.endpoint).in(roomToJoin).emit('updateMembers', clients.length);
+            });
         });
         nsSocket.on('newMessageToServer', (msg) => {
             const fullMsg = {
                 text: msg.text,
                 time: Date.now(),
                 username: 'me',
-                avatar: 'http://via.placeholder.com/30'
+                avatar: 'https://via.placeholder.com/30'
             }
-            // console.log(fullMsg);
-            // console.log(nsSocket.rooms);
             const roomTitle = Object.keys(nsSocket.rooms)[1];
-            const nsRoom = namespaces[0].rooms.find((room) => {
+            const nsRoom = namespace.rooms.find((room) => {
                 return room.roomTitle === roomTitle;
             });
-            // console.log(nsRoom);
             nsRoom.addMessage(fullMsg);
-            io.of('/wiki').to(roomTitle).emit('messageToClients', fullMsg);
+            io.of(namespace.endpoint).to(roomTitle).emit('messageToClients', fullMsg);
         })
     })
 })
