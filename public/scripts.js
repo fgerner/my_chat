@@ -1,7 +1,11 @@
-const socket = io('http://localhost:3000');
+const username = prompt('Please enter your username: ');
+const socket = io('http://localhost:3000', {
+    query: {
+        username
+    }
+});
 let nsSocket = '';
 socket.on('nsList', (nsData) => {
-    console.log('list of namespaces is here');
     let namespacesDiv = document.querySelector('.namespaces');
     namespacesDiv.innerHTML = "";
     nsData.forEach((ns) => {

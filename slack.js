@@ -7,6 +7,7 @@ app.use(express.static(__dirname + '/public'));
 const expressServer = app.listen(3000);
 const io = socketIo(expressServer);
 
+//open socket connection server side
 io.on('connection', (socket) => {
     let nsData = namespaces.map((ns) => {
         return {
@@ -17,8 +18,11 @@ io.on('connection', (socket) => {
     socket.emit('nsList', nsData)
 });
 
+//create namespaces server side and listen for connections
 namespaces.forEach((namespace) => {
     io.of(namespace.endpoint).on('connection', (nsSocket) => {
+        const username = nsSocket.handshake.query.username;
+        //setup rooms in each namespace
         nsSocket.emit('nsRoomLoad', namespace.rooms);
         nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
             const roomToLeave = Object.keys(nsSocket.rooms)[1];
@@ -35,7 +39,7 @@ namespaces.forEach((namespace) => {
             const fullMsg = {
                 text: msg.text,
                 time: Date.now(),
-                username: 'me',
+                username: username,
                 avatar: 'https://via.placeholder.com/30'
             }
             const roomTitle = Object.keys(nsSocket.rooms)[1];
