@@ -24,7 +24,9 @@ namespaces.forEach((namespace) => {
         const username = nsSocket.handshake.query.username;
         //setup rooms in each namespace
         nsSocket.emit('nsRoomLoad', namespace.rooms);
-        nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
+        //join socket for room
+        nsSocket.on('joinRoom' , (roomToJoin) => {
+            //leave current room socket
             const roomToLeave = Object.keys(nsSocket.rooms)[1];
             nsSocket.leave(roomToLeave);
             updateUsersInRoom(namespace, roomToLeave);

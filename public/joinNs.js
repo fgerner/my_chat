@@ -1,11 +1,13 @@
 function joinNs(endpoint) {
+    //closing socket if existing
     if (nsSocket) {
         nsSocket.close();
         document.querySelector('#user-input').removeEventListener('submit', formSubmission);
     }
+    //create a new server socket for new namespace server endpoint
     nsSocket = io(`http://localhost:3000${endpoint}`);
+    //render room list
     nsSocket.on('nsRoomLoad', (nsRooms) => {
-        // console.log(nsRooms);
         let roomList = document.querySelector('.room-list');
         roomList.innerHTML = '';
         nsRooms.forEach((room) => {
@@ -18,11 +20,13 @@ function joinNs(endpoint) {
             roomList.innerHTML += `<li class="room"><span class="glyphicon glyphicon-${glyph}"></span>${room.roomTitle}</li>`;
         });
         let roomNodes = document.getElementsByClassName('room');
+        //add event listeners on rooms
         Array.from(roomNodes).forEach((elem) => {
             elem.addEventListener('click', (e) => {
                 joinRoom(e.target.innerText);
             })
         })
+        //join first room on the list
         const topRoom = document.querySelector('.room');
         const topRoomName = topRoom.innerText;
         joinRoom(topRoomName);
@@ -32,6 +36,7 @@ function joinNs(endpoint) {
         const newMsg = buildHTML(msg);
         document.querySelector('#messages').innerHTML += newMsg;
     });
+    //add event listener to message form
     document.querySelector('.message-form')
         .addEventListener('submit', formSubmission);
 }
